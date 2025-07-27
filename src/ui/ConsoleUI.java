@@ -13,7 +13,7 @@ public class ConsoleUI {
     private final LibrarySystem library = LibrarySystem.getInstance();
     private void showWelcomePage() {
         System.out.println("======================================");
-        System.out.println("📚  Welcome to the Library System!");
+        System.out.println("Welcome to the Library System!");
         System.out.println("======================================");
         System.out.println("Please choose an option:");
         System.out.println("1. Login");
@@ -49,7 +49,7 @@ public class ConsoleUI {
             System.out.print("Enter ID: ");
             id = scanner.nextLine();
             if (library.hasUser(id)) {
-                System.out.println("ID already exists. Try another.");
+                System.out.println("ID already exists.");
             } else break;
         }
 
@@ -98,7 +98,7 @@ public class ConsoleUI {
         String choice;
 
         do {
-            System.out.println("\n📚 --- Regular User Menu ---");
+            System.out.println("\n--- Regular User Menu ---");
             System.out.println("1. View Book Catalog");
             System.out.println("2. Borrow Book");
             System.out.println("3. Return Book");
@@ -114,7 +114,7 @@ public class ConsoleUI {
                 case "3" -> returnBook(user);
                 case "4" -> viewBorrowedBooks(user);
                 case "0" -> {System.out.println("Logging out..."); handleWelcomeMenu();}
-                default -> System.out.println("Invalid option. Try again.");
+                default -> System.out.println("Invalid option.");
             }
         } while (!choice.equals("0"));
     }
@@ -125,7 +125,7 @@ public class ConsoleUI {
 
     public void borrowBook(User user) {
         // ask for bookId, call user.borrowBook(bookId), handle exception
-        System.out.print("📚 Enter the Book ID to borrow: ");
+        System.out.print("Enter the Book ID to borrow: ");
         String bookId = scanner.nextLine().trim();
 
         try {
@@ -153,7 +153,7 @@ public class ConsoleUI {
 
     public void viewBorrowedBooks(User user) {
 
-        System.out.println("\n📚 --- Borrowed Books ---");
+        System.out.println("\n--- Borrowed Books ---");
         System.out.printf("%-10s | %-25s | %-20s | %-15s \n","ID", "Title", "Author", "Genre");
         System.out.println("-------------------------------------------------------------------------------");
         for (Book b : user.getBorrowedBooks()) {
@@ -165,7 +165,7 @@ public class ConsoleUI {
     /// Admin stuff
     public void handleAdminMenu(Admin admin) throws Exception {
         while (true) {
-            System.out.println("\n=== 📚 Admin Menu ===");
+            System.out.println("\n=== Admin Menu ===");
             System.out.println("1️.  Add Book");
             System.out.println("2.  Edit Book");
             System.out.println("3.  Delete Book");
@@ -199,7 +199,7 @@ public class ConsoleUI {
     }
 
     private void addBook() throws Exception {
-        System.out.println("\n📘 Add New Book:");
+        System.out.println("\n Add New Book:");
 
         System.out.print("Enter Book ID: ");
         String id = scanner.nextLine();
@@ -230,7 +230,7 @@ public class ConsoleUI {
             return;
         }
 
-        System.out.print("\n🗑️ Enter the ID of the book to delete: ");
+        System.out.print("\n🗑 Enter the ID of the book to delete: ");
         String bookId = scanner.nextLine();
 
         if (library.hasBook(bookId)) {

@@ -20,9 +20,6 @@ public class Book implements Searchable {
 
     }
 
-
-
-
    public void increaseCopies()
     {
        this.availableCopies++;
