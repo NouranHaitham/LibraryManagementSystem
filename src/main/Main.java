@@ -12,11 +12,11 @@ public class Main {
         DatabaseStorage storage = new DatabaseStorage();
         storage.loadData(system);
 
-//        if (system.usersSize() == 0) {
-//            Admin admin = new Admin("admin123", "Nouran");
-//            system.addUser(admin);
-//            System.out.println(" Default admin created (ID: admin123, Name: Nouran)");
-//        }
+        if (system.usersSize() == 0) {
+            Admin admin = new Admin("admin123", "Nouran");
+            system.addUser(admin);
+            System.out.println(" Default admin created (ID: admin123, Name: Nouran)");
+        }
 
         ConsoleUI ui = new ConsoleUI();
         ui.handleWelcomeMenu();

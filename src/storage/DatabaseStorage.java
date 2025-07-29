@@ -3,199 +3,215 @@ package storage;
 import entities.*;
 
 import java.sql.*;
-import java.util.List;
 
 public class DatabaseStorage {
 
-    private static final String DB_URL = "jdbc:mysql://localhost:3306/library?useSSL=false&serverTimezone=UTC";
-    private static final String USER = "root";
-    private static final String PASSWORD = "30072004Nn!";
+    private static final String DB_HOST = System.getenv("DB_HOST");
+    private static final String DB_PORT = System.getenv("DB_PORT");
+    private static final String DB_NAME = System.getenv("DB_NAME");
+    private static final String DB_USER = System.getenv("DB_USER");
+    private static final String DB_PASSWORD = System.getenv("DB_PASSWORD");
+
+    private static final String DB_URL = "jdbc:mysql://" + DB_HOST + ":" + DB_PORT + "/" + DB_NAME +
+            "?allowPublicKeyRetrieval=true&useSSL=false&serverTimezone=UTC";
+
+    // SQL constants
+    private static final String CREATE_BOOKS = """
+        CREATE TABLE IF NOT EXISTS books (
+            id VARCHAR(255) PRIMARY KEY,
+            title TEXT,
+            author TEXT,
+            genre TEXT,
+            copies INT
+        );
+    """;
+
+    private static final String CREATE_USERS = """
+        CREATE TABLE IF NOT EXISTS users (
+            id VARCHAR(255) PRIMARY KEY,
+            name TEXT,
+            role TEXT
+        );
+    """;
+
+    private static final String CREATE_BORROWED = """
+        CREATE TABLE IF NOT EXISTS borrowed (
+            userId VARCHAR(255),
+            bookId VARCHAR(255),
+            PRIMARY KEY (userId, bookId),
+            FOREIGN KEY (userId) REFERENCES users(id) ON DELETE CASCADE,
+            FOREIGN KEY (bookId) REFERENCES books(id) ON DELETE CASCADE
+        );
+    """;
+
+    private static final String CREATE_HISTORY = """
+        CREATE TABLE IF NOT EXISTS history (
+            userId VARCHAR(255),
+            bookId VARCHAR(255),
+            PRIMARY KEY (userId, bookId),
+            FOREIGN KEY (userId) REFERENCES users(id) ON DELETE CASCADE,
+            FOREIGN KEY (bookId) REFERENCES books(id) ON DELETE CASCADE
+        );
+    """;
 
     public void saveData(LibrarySystem system) {
-        try {
-            Class.forName("com.mysql.cj.jdbc.Driver");
-            try (Connection conn = DriverManager.getConnection(DB_URL, USER, PASSWORD)) {
-                createTables(conn);
-                clearTables(conn);
+        try (Connection conn = connect()) {
+            createTables(conn);
+            clearTables(conn);
 
-                saveBooks(conn, system);
-                saveUsers(conn, system);
-                saveBorrowedAndHistory(conn, system);
+            saveBooks(conn, system);
+            saveUsers(conn, system);
+            saveBorrowedAndHistory(conn, system);
 
-                System.out.println("Data saved to database.");
-            }
+            System.out.println("Data saved to database.");
         } catch (Exception e) {
-            System.out.println("Failed to save data: " + e.getMessage());
+            System.out.println("Failed to save data:");
+            e.printStackTrace();
         }
     }
 
     public void loadData(LibrarySystem system) {
-        try {
-            Class.forName("com.mysql.cj.jdbc.Driver");
-            try (Connection conn = DriverManager.getConnection(DB_URL, USER, PASSWORD)) {
-                loadBooks(conn, system);
-                loadUsers(conn, system);
-                loadBorrowedAndHistory(conn, system);
+        try (Connection conn = connect()) {
+            loadBooks(conn, system);
+            loadUsers(conn, system);
+            loadBorrowedAndHistory(conn, system);
 
-                System.out.println("Data loaded from database.");
-            }
+            System.out.println("Data loaded from database.");
         } catch (Exception e) {
-            System.out.println("Failed to load data: " + e.getMessage());
+            System.out.println("Failed to load data:");
         }
     }
 
+    private Connection connect() throws SQLException, ClassNotFoundException {
+        Class.forName("com.mysql.cj.jdbc.Driver");
+
+        System.out.println("Connecting to DB with URL: " + DB_URL);
+        System.out.println("Using user: " + DB_USER);
+
+        return DriverManager.getConnection(DB_URL, DB_USER, DB_PASSWORD);
+    }
+
     private void createTables(Connection conn) throws SQLException {
-        Statement stat = conn.createStatement();
-
-        stat.execute("""
-            CREATE TABLE IF NOT EXISTS books (
-                id VARCHAR(255) PRIMARY KEY,
-                title TEXT,
-                author TEXT,
-                genre TEXT,
-                copies INT
-            );
-        """);
-
-        stat.execute("""
-            CREATE TABLE IF NOT EXISTS users (
-                id VARCHAR(255) PRIMARY KEY,
-                name TEXT,
-                role TEXT
-            );
-        """);
-
-        stat.execute("""
-            CREATE TABLE IF NOT EXISTS borrowed (
-                userId VARCHAR(255),
-                bookId VARCHAR(255)
-            );
-        """);
-
-        stat.execute("""
-            CREATE TABLE IF NOT EXISTS history (
-                userId VARCHAR(255),
-                bookId VARCHAR(255)
-            );
-        """);
-
-        stat.close();
+        try (Statement stmt = conn.createStatement()) {
+            stmt.execute(CREATE_BOOKS);
+            stmt.execute(CREATE_USERS);
+            stmt.execute(CREATE_BORROWED);
+            stmt.execute(CREATE_HISTORY);
+        }
     }
 
     private void clearTables(Connection conn) throws SQLException {
-        Statement stat = conn.createStatement();
-        stat.execute("DELETE FROM borrowed;");
-        stat.execute("DELETE FROM history;");
-        stat.execute("DELETE FROM users;");
-        stat.execute("DELETE FROM books;");
-        stat.close();
+        try (Statement stmt = conn.createStatement()) {
+            stmt.execute("DELETE FROM borrowed;");
+            stmt.execute("DELETE FROM history;");
+            stmt.execute("DELETE FROM users;");
+            stmt.execute("DELETE FROM books;");
+        }
     }
 
     private void saveBooks(Connection conn, LibrarySystem system) throws SQLException {
         String sql = "INSERT INTO books (id, title, author, genre, copies) VALUES (?, ?, ?, ?, ?)";
-        PreparedStatement prepared = conn.prepareStatement(sql);
-
-        for (Book b : system.getBooks()) {
-            prepared.setString(1, b.getId());
-            prepared.setString(2, b.getTitle());
-            prepared.setString(3, b.getAuthor());
-            prepared.setString(4, b.getGenre());
-            prepared.setInt(5, b.getAvailableCopies());
-            prepared.executeUpdate();
+        try (PreparedStatement ps = conn.prepareStatement(sql)) {
+            for (Book b : system.getBooks()) {
+                ps.setString(1, b.getId());
+                ps.setString(2, b.getTitle());
+                ps.setString(3, b.getAuthor());
+                ps.setString(4, b.getGenre());
+                ps.setInt(5, b.getAvailableCopies());
+                ps.executeUpdate();
+            }
         }
-        prepared.close();
     }
 
     private void saveUsers(Connection conn, LibrarySystem system) throws SQLException {
         String sql = "INSERT INTO users (id, name, role) VALUES (?, ?, ?)";
-        PreparedStatement prepared = conn.prepareStatement(sql);
-
-        for (User u : system.getUsers()) {
-            prepared.setString(1, u.getId());
-            prepared.setString(2, u.getName());
-            prepared.setString(3, (u instanceof Admin) ? "admin" : "user");
-            prepared.executeUpdate();
+        try (PreparedStatement ps = conn.prepareStatement(sql)) {
+            for (User u : system.getUsers()) {
+                ps.setString(1, u.getId());
+                ps.setString(2, u.getName());
+                ps.setString(3, (u instanceof Admin) ? "admin" : "user");
+                ps.executeUpdate();
+            }
         }
-        prepared.close();
     }
 
     private void saveBorrowedAndHistory(Connection conn, LibrarySystem system) throws SQLException {
-        PreparedStatement borrowedStmt = conn.prepareStatement("INSERT INTO borrowed (userId, bookId) VALUES (?, ?)");
-        PreparedStatement historyStmt = conn.prepareStatement("INSERT INTO history (userId, bookId) VALUES (?, ?)");
+        String borrowSql = "INSERT INTO borrowed (userId, bookId) VALUES (?, ?)";
+        String historySql = "INSERT INTO history (userId, bookId) VALUES (?, ?)";
 
-        for (User u : system.getUsers()) {
-            for (Book b : u.getBorrowedBooks()) {
-                borrowedStmt.setString(1, u.getId());
-                borrowedStmt.setString(2, b.getId());
-                borrowedStmt.executeUpdate();
-            }
-            for (Book b : u.getHistoryBooks()) {
-                historyStmt.setString(1, u.getId());
-                historyStmt.setString(2, b.getId());
-                historyStmt.executeUpdate();
+        try (
+                PreparedStatement borrowStmt = conn.prepareStatement(borrowSql);
+                PreparedStatement historyStmt = conn.prepareStatement(historySql)
+        ) {
+            for (User u : system.getUsers()) {
+                for (Book b : u.getBorrowedBooks()) {
+                    borrowStmt.setString(1, u.getId());
+                    borrowStmt.setString(2, b.getId());
+                    borrowStmt.executeUpdate();
+                }
+                for (Book b : u.getHistoryBooks()) {
+                    historyStmt.setString(1, u.getId());
+                    historyStmt.setString(2, b.getId());
+                    historyStmt.executeUpdate();
+                }
             }
         }
-        borrowedStmt.close();
-        historyStmt.close();
     }
 
     private void loadBooks(Connection conn, LibrarySystem system) throws Exception {
-        Statement stat = conn.createStatement();
-        ResultSet res = stat.executeQuery("SELECT * FROM books");
-
-        while (res.next()) {
-            Book b = new Book(
-                    res.getString("id"),
-                    res.getString("title"),
-                    res.getString("author"),
-                    res.getString("genre"),
-                    res.getInt("copies")
-            );
-            system.addBook(b);
+        String query = "SELECT * FROM books";
+        try (
+                Statement stmt = conn.createStatement();
+                ResultSet rs = stmt.executeQuery(query)
+        ) {
+            while (rs.next()) {
+                Book b = new Book(
+                        rs.getString("id"),
+                        rs.getString("title"),
+                        rs.getString("author"),
+                        rs.getString("genre"),
+                        rs.getInt("copies")
+                );
+                system.addBook(b);
+            }
         }
-
-        res.close();
-        stat.close();
     }
 
     private void loadUsers(Connection conn, LibrarySystem system) throws SQLException {
-        Statement stat = conn.createStatement();
-        ResultSet res = stat.executeQuery("SELECT * FROM users");
+        String query = "SELECT * FROM users";
+        try (
+                Statement stmt = conn.createStatement();
+                ResultSet rs = stmt.executeQuery(query)
+        ) {
+            while (rs.next()) {
+                String id = rs.getString("id");
+                String name = rs.getString("name");
+                String role = rs.getString("role");
 
-        while (res.next()) {
-            String id = res.getString("id");
-            String name = res.getString("name");
-            String role = res.getString("role");
-
-            User u = role.equalsIgnoreCase("admin") ? new Admin(id, name) : new RegularUser(id, name);
-            system.addUser(u);
+                User u = role.equalsIgnoreCase("admin") ? new Admin(id, name) : new RegularUser(id, name);
+                system.addUser(u);
+            }
         }
-
-        res.close();
-        stat.close();
     }
 
     private void loadBorrowedAndHistory(Connection conn, LibrarySystem system) throws SQLException {
-        Statement borrowedStmt = conn.createStatement();
-        Statement historyStmt = conn.createStatement();
+        try (
+                Statement borrowStmt = conn.createStatement();
+                Statement historyStmt = conn.createStatement();
+                ResultSet borrows = borrowStmt.executeQuery("SELECT * FROM borrowed");
+                ResultSet historys = historyStmt.executeQuery("SELECT * FROM history")
+        ) {
+            while (borrows.next()) {
+                User u = system.findUserById(borrows.getString("userId"));
+                Book b = system.findBookById(borrows.getString("bookId"));
+                if (u != null && b != null) u.addBorrowedBook(b);
+            }
 
-        ResultSet borrows = borrowedStmt.executeQuery("SELECT * FROM borrowed");
-        while (borrows.next()) {
-            User u = system.findUserById(borrows.getString("userId"));
-            Book b = system.findBookById(borrows.getString("bookId"));
-            if (u != null && b != null) u.addBorrowedBook(b);
+            while (historys.next()) {
+                User u = system.findUserById(historys.getString("userId"));
+                Book b = system.findBookById(historys.getString("bookId"));
+                if (u != null && b != null) u.getHistoryBooks().add(b);
+            }
         }
-
-        ResultSet historys = historyStmt.executeQuery("SELECT * FROM history");
-        while (historys.next()) {
-            User u = system.findUserById(historys.getString("userId"));
-            Book b = system.findBookById(historys.getString("bookId"));
-            if (u != null && b != null) u.getHistoryBooks().add(b);
-        }
-
-        borrows.close();
-        historys.close();
-        borrowedStmt.close();
-        historyStmt.close();
     }
 }
