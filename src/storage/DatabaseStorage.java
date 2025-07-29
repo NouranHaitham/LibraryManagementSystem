@@ -1,39 +1,46 @@
 package storage;
 
 import entities.*;
+
 import java.sql.*;
-import java.util.*;
+import java.util.List;
 
 public class DatabaseStorage {
 
-    private static final String DB_URL = "jdbc:sqlite:library.db";
+    private static final String DB_URL = "jdbc:mysql://localhost:3306/library?useSSL=false&serverTimezone=UTC";
+    private static final String USER = "root";
+    private static final String PASSWORD = "30072004Nn!";
 
     public void saveData(LibrarySystem system) {
-        try (Connection conn = DriverManager.getConnection(DB_URL)) {
-            createTables(conn);
-            clearTables(conn);
+        try {
+            Class.forName("com.mysql.cj.jdbc.Driver");
+            try (Connection conn = DriverManager.getConnection(DB_URL, USER, PASSWORD)) {
+                createTables(conn);
+                clearTables(conn);
 
-            saveBooks(conn, system);
-            saveUsers(conn, system);
-            saveBorrowedAndHistory(conn, system);
+                saveBooks(conn, system);
+                saveUsers(conn, system);
+                saveBorrowedAndHistory(conn, system);
 
-            System.out.println("Data saved to database.");
-        } catch (SQLException e) {
+                System.out.println("Data saved to database.");
+            }
+        } catch (Exception e) {
             System.out.println("Failed to save data: " + e.getMessage());
         }
     }
 
     public void loadData(LibrarySystem system) {
-        try (Connection conn = DriverManager.getConnection(DB_URL)) {
-            loadBooks(conn, system);
-            loadUsers(conn, system);
-            loadBorrowedAndHistory(conn, system);
+        try {
+            Class.forName("com.mysql.cj.jdbc.Driver");
+            try (Connection conn = DriverManager.getConnection(DB_URL, USER, PASSWORD)) {
+                loadBooks(conn, system);
+                loadUsers(conn, system);
+                loadBorrowedAndHistory(conn, system);
 
-            System.out.println("Data loaded from database.");
-        } catch (SQLException e) {
-            System.out.println("Failed to load data: " + e.getMessage());
+                System.out.println("Data loaded from database.");
+            }
         } catch (Exception e) {
-            throw new RuntimeException(e);
+            System.out.println("Failed to load data: " + e.getMessage());
         }
     }
 
@@ -42,30 +49,34 @@ public class DatabaseStorage {
 
         stat.execute("""
             CREATE TABLE IF NOT EXISTS books (
-                id TEXT PRIMARY KEY,
+                id VARCHAR(255) PRIMARY KEY,
                 title TEXT,
                 author TEXT,
                 genre TEXT,
-                copies INTEGER);
-          """);
+                copies INT
+            );
+        """);
 
         stat.execute("""
             CREATE TABLE IF NOT EXISTS users (
-                id TEXT PRIMARY KEY,
+                id VARCHAR(255) PRIMARY KEY,
                 name TEXT,
-                role TEXT );
+                role TEXT
+            );
         """);
 
         stat.execute("""
             CREATE TABLE IF NOT EXISTS borrowed (
-                userId TEXT,
-                bookId TEXT);
+                userId VARCHAR(255),
+                bookId VARCHAR(255)
+            );
         """);
 
         stat.execute("""
             CREATE TABLE IF NOT EXISTS history (
-                userId TEXT,
-                bookId TEXT);
+                userId VARCHAR(255),
+                bookId VARCHAR(255)
+            );
         """);
 
         stat.close();
@@ -73,10 +84,10 @@ public class DatabaseStorage {
 
     private void clearTables(Connection conn) throws SQLException {
         Statement stat = conn.createStatement();
-        stat.execute("DELETE FROM books;");
-        stat.execute("DELETE FROM users;");
         stat.execute("DELETE FROM borrowed;");
         stat.execute("DELETE FROM history;");
+        stat.execute("DELETE FROM users;");
+        stat.execute("DELETE FROM books;");
         stat.close();
     }
 
@@ -92,6 +103,7 @@ public class DatabaseStorage {
             prepared.setInt(5, b.getAvailableCopies());
             prepared.executeUpdate();
         }
+        prepared.close();
     }
 
     private void saveUsers(Connection conn, LibrarySystem system) throws SQLException {
@@ -104,6 +116,7 @@ public class DatabaseStorage {
             prepared.setString(3, (u instanceof Admin) ? "admin" : "user");
             prepared.executeUpdate();
         }
+        prepared.close();
     }
 
     private void saveBorrowedAndHistory(Connection conn, LibrarySystem system) throws SQLException {
@@ -122,6 +135,8 @@ public class DatabaseStorage {
                 historyStmt.executeUpdate();
             }
         }
+        borrowedStmt.close();
+        historyStmt.close();
     }
 
     private void loadBooks(Connection conn, LibrarySystem system) throws Exception {
@@ -138,6 +153,7 @@ public class DatabaseStorage {
             );
             system.addBook(b);
         }
+
         res.close();
         stat.close();
     }
@@ -151,7 +167,7 @@ public class DatabaseStorage {
             String name = res.getString("name");
             String role = res.getString("role");
 
-            User u = role.equals("admin") ? new Admin(id, name) : new RegularUser(id, name);
+            User u = role.equalsIgnoreCase("admin") ? new Admin(id, name) : new RegularUser(id, name);
             system.addUser(u);
         }
 
@@ -160,17 +176,17 @@ public class DatabaseStorage {
     }
 
     private void loadBorrowedAndHistory(Connection conn, LibrarySystem system) throws SQLException {
-        PreparedStatement borrowedStmt = conn.prepareStatement("SELECT * FROM borrowed");
-        PreparedStatement historyStmt = conn.prepareStatement("SELECT * FROM history");
+        Statement borrowedStmt = conn.createStatement();
+        Statement historyStmt = conn.createStatement();
 
-        ResultSet borrows = borrowedStmt.executeQuery();
+        ResultSet borrows = borrowedStmt.executeQuery("SELECT * FROM borrowed");
         while (borrows.next()) {
             User u = system.findUserById(borrows.getString("userId"));
             Book b = system.findBookById(borrows.getString("bookId"));
-            if (u != null && b != null) u.addBorrowedBook(b); // custom method if needed
+            if (u != null && b != null) u.addBorrowedBook(b);
         }
 
-        ResultSet historys = historyStmt.executeQuery();
+        ResultSet historys = historyStmt.executeQuery("SELECT * FROM history");
         while (historys.next()) {
             User u = system.findUserById(historys.getString("userId"));
             Book b = system.findBookById(historys.getString("bookId"));
@@ -179,5 +195,7 @@ public class DatabaseStorage {
 
         borrows.close();
         historys.close();
+        borrowedStmt.close();
+        historyStmt.close();
     }
 }

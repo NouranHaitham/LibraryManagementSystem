@@ -72,14 +72,19 @@ public class ConsoleUI {
 
 
     private void login() throws Exception {
-        System.out.print("Enter your ID: ");
-        String id = scanner.nextLine();
 
-        User user = library.findUserById(id);
-        if (user == null) {
-            System.out.println("User not found. Please register first.");
-            return;
-        }
+        User user;
+       do {
+
+           System.out.print("Enter your ID: ");
+           String id = scanner.nextLine();
+
+           user = library.findUserById(id);
+           if (user == null) {
+               System.out.println("User not found.");
+           }
+
+       }while(user == null);
 
         System.out.println("Login successful! Welcome, " + user.getName());
 
