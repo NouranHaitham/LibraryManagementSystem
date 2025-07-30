@@ -6,11 +6,11 @@ import java.sql.*;
 
 public class DatabaseStorage {
 
-    private static final String DB_HOST = System.getenv("DB_HOST");
-    private static final String DB_PORT = System.getenv("DB_PORT");
-    private static final String DB_NAME = System.getenv("DB_NAME");
-    private static final String DB_USER = System.getenv("DB_USER");
-    private static final String DB_PASSWORD = System.getenv("DB_PASSWORD");
+    private static final String DB_HOST = "db";
+    private static final String DB_PORT = "3306";
+    private static final String DB_NAME = "library";
+    private static final String DB_USER = "root";
+    private static final String DB_PASSWORD = "30072004Nn!";
 
     private static final String DB_URL = "jdbc:mysql://" + DB_HOST + ":" + DB_PORT + "/" + DB_NAME +
             "?allowPublicKeyRetrieval=true&useSSL=false&serverTimezone=UTC";
