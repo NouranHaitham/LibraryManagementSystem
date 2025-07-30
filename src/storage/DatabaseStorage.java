@@ -6,16 +6,15 @@ import java.sql.*;
 
 public class DatabaseStorage {
 
-    private static final String DB_HOST = "db";
-    private static final String DB_PORT = "3306";
-    private static final String DB_NAME = "library";
-    private static final String DB_USER = "root";
-    private static final String DB_PASSWORD = "30072004Nn!";
+    String DB_HOST = System.getenv("DB_HOST");
+    String DB_PORT = System.getenv("DB_PORT");
+    String DB_NAME = System.getenv("DB_NAME");
+    String DB_USER = System.getenv("DB_USER");
+    String DB_PASSWORD = System.getenv("DB_PASSWORD");
 
-    private static final String DB_URL = "jdbc:mysql://" + DB_HOST + ":" + DB_PORT + "/" + DB_NAME +
-            "?allowPublicKeyRetrieval=true&useSSL=false&serverTimezone=UTC";
+    String DB_URL = "jdbc:mysql://" + DB_HOST + ":" + DB_PORT + "/" + DB_NAME +
+            "?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC";
 
-    // SQL constants
     private static final String CREATE_BOOKS = """
         CREATE TABLE IF NOT EXISTS books (
             id VARCHAR(255) PRIMARY KEY,
@@ -54,7 +53,8 @@ public class DatabaseStorage {
         );
     """;
 
-    public void saveData(LibrarySystem system) {
+    public void saveData(LibrarySystem system){
+
         try (Connection conn = connect()) {
             createTables(conn);
             clearTables(conn);
@@ -70,7 +70,15 @@ public class DatabaseStorage {
         }
     }
 
-    public void loadData(LibrarySystem system) {
+    public void loadData(LibrarySystem system) throws ClassNotFoundException {
+//        System.out.println("DB_HOST=" + DB_HOST);
+//        System.out.println("DB_PORT=" + DB_PORT);
+//        System.out.println("DB_NAME=" + DB_NAME);
+//        System.out.println("DB_USER=" + DB_USER);
+//        System.out.println("DB_PASSWORD=" + DB_PASSWORD);
+//        System.out.println("DB_URL=" + DB_URL);
+//        System.out.println(Class.forName("com.mysql.cj.jdbc.Driver"));
+
         try (Connection conn = connect()) {
             loadBooks(conn, system);
             loadUsers(conn, system);
@@ -79,6 +87,7 @@ public class DatabaseStorage {
             System.out.println("Data loaded from database.");
         } catch (Exception e) {
             System.out.println("Failed to load data:");
+            e.printStackTrace();
         }
     }
 
