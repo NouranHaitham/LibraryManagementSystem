@@ -2,7 +2,7 @@
 
 This is a **Java-based console application** for managing a library system. It allows **Admins** to manage books and users, and **Regular Users** to log in, borrow, and return books. The app uses a **MySQL database** to persist all data and leverages **Docker** and **Docker Compose** for containerized deployment.
 
-## ✨ Features
+## Features
 
 * Console-based interface for Admins and Regular Users
 * Persistent data storage using MySQL
@@ -12,7 +12,7 @@ This is a **Java-based console application** for managing a library system. It a
 
 ---
 
-## 📦 Prerequisites
+## Prerequisites
 
 Make sure the following are installed:
 
@@ -21,21 +21,20 @@ Make sure the following are installed:
 
 ---
 
-## 📂 Project Structure
+## Project Structure
 
 ```
 📁 library-management-app/
-👤📁 src/                   # Java source files (Main, models, services)
-👤📁 db/                    # SQL scripts for schema (optional)
+👤📁 src/                # Java source files (Main, models, services)
 📄 Dockerfile             # Builds the Java app image
 📄 docker-compose.yml     # Orchestrates app and database services
-📄 .env                   # Environment variables (not checked into Git)
+📄 .env                   # Environment variables 
 📄 README.md              # Project documentation (this file)
 ```
 
 ---
 
-## 🚀 Getting Started
+## Getting Started
 
 ### 1. Clone the repo
 
@@ -61,8 +60,6 @@ DB_USER=root
 DB_PASSWORD=your_root_password
 ```
 
-> 🔐 These variables are used by the Java app via `System.getenv()` and passed through Docker Compose.
-
 ---
 
 ### 3. Build and Run the App
@@ -77,7 +74,7 @@ docker-compose up --build
 
 ---
 
-## 🌐 Access Adminer UI
+## Access Adminer UI
 
 You can view and manage your MySQL database using [Adminer](https://www.adminer.org/):
 
@@ -94,7 +91,7 @@ You can view and manage your MySQL database using [Adminer](https://www.adminer.
 
 ---
 
-## ⚙️ Environment Variables Summary
+## Environment Variables Summary
 
 | Variable              | Description                         |
 | --------------------- | ----------------------------------- |
@@ -114,13 +111,13 @@ System.getenv("DB_PASSWORD");
 ...
 ```
 
-> ✅ Make sure `.env` is outside the `src/` folder and next to `docker-compose.yml`.
+> Make sure `.env` is outside the `src/` folder and next to `docker-compose.yml`.
 
 ---
 
-## 🧹 Troubleshooting
+## Troubleshooting
 
-### ❌ Communications link failure
+### Communications link failure
 
 * **Cause**: App can't connect to DB.
 * **Fix**:
@@ -129,7 +126,7 @@ System.getenv("DB_PASSWORD");
   * Use the correct username/password.
   * Ensure DB container is fully running.
 
-### ⚠️ Environment variables are `null`
+### Environment variables are `null`
 
 * `.env` must be placed **in the project root**.
 * If running outside Docker (e.g. from IDE), `.env` won’t load automatically. You must:
@@ -137,7 +134,7 @@ System.getenv("DB_PASSWORD");
   * Manually set `-D` JVM arguments, or
   * Use a library like [dotenv-java](https://github.com/cdimascio/dotenv-java) to load `.env`.
 
-### 🐳 Docker container errors
+### Docker container errors
 
 * Rebuild from scratch:
 
@@ -146,7 +143,7 @@ System.getenv("DB_PASSWORD");
   docker-compose up --build
   ```
 
-### ❗ Java version mismatch
+### Java version mismatch
 
 If you see `UnsupportedClassVersionError`, make sure:
 
@@ -155,7 +152,7 @@ If you see `UnsupportedClassVersionError`, make sure:
 
 ---
 
-## ✅ Optional Notes
+## Optional Notes
 
 * **No need to install netcat**: We use a wait-for-it script or Java socket polling to ensure DB readiness.
 * **No hardcoded DB settings**: Everything is configured via `.env` for flexibility and security.
@@ -166,13 +163,3 @@ If you see `UnsupportedClassVersionError`, make sure:
 ## 💬 Contact / Contributions
 
 Feel free to submit issues or PRs. For questions, reach out to the project maintainer.
-
----
-
-## 📝 License
-
-MIT License. Feel free to use and modify this project.
-
----
-
-Happy coding! 🚀
