@@ -80,13 +80,18 @@ public abstract class User implements Searchable , Borrowable {
         // must not be borrowed before
         // must have copies, so i dec
 
+        Book bookL = lib.findBookById(bookId);
+
+        if(bookL == null)
+        {
+            throw new Exception("Book doesn't exist.");
+        }
+
         SearchService<Book> borrowService = new SearchService<>(this.borrowedBooks);
         Book bookB = borrowService.searchByID(bookId);
 
         SearchService<Book> historyService = new SearchService<>(this.historyBooks);
         Book bookH = historyService.searchByID(bookId);
-
-        Book bookL = lib.findBookById(bookId);
 
         if(bookB != null)
         {
@@ -110,10 +115,15 @@ public abstract class User implements Searchable , Borrowable {
         // must be in borrowed list
         // must have copies, so i inc
 
+        Book bookL = lib.findBookById(bookId);
+
+        if(bookL == null)
+        {
+            throw new Exception("Book doesn't exist.");
+        }
+
         SearchService<Book> borrowService = new SearchService<>(this.borrowedBooks);
         Book bookB = borrowService.searchByID(bookId);
-
-        Book bookL = lib.findBookById(bookId);
 
         if(bookB == null)
         {

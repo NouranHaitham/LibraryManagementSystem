@@ -101,11 +101,7 @@ public class DatabaseStorage {
     }
 
     private Connection connect() throws SQLException, ClassNotFoundException {
-
         Class.forName("com.mysql.cj.jdbc.Driver");
-//        System.out.println("Connecting to DB with URL: " + DB_URL);
-//        System.out.println("Using user: " + DB_USER);
-
         return DriverManager.getConnection(DB_URL, DB_USER, DB_PASSWORD);
     }
 
@@ -119,11 +115,11 @@ public class DatabaseStorage {
     }
 
     private void clearTables(Connection conn) throws SQLException {
-        try (Statement stmt = conn.createStatement()) {
-            stmt.execute("DELETE FROM borrowed;");
-            stmt.execute("DELETE FROM history;");
-            stmt.execute("DELETE FROM users;");
-            stmt.execute("DELETE FROM books;");
+        try (Statement stat = conn.createStatement()) {
+            stat.execute("DELETE FROM borrowed;");
+            stat.execute("DELETE FROM history;");
+            stat.execute("DELETE FROM users;");
+            stat.execute("DELETE FROM books;");
         }
     }
 

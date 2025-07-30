@@ -1,19 +1,16 @@
 #!/usr/bin/env bash
 
-# wait-for-it.sh
-# Usage: wait-for-it.sh host:port -- command_to_run
-
 hostport="$1"
 shift
 
-host="$(echo "$hostport" | cut -d':' -f1)"
-port="$(echo "$hostport" | cut -d':' -f2)"
+host="${hostport%%:*}"
+port="${hostport##*:}"
 
-echo "⏳ Waiting for $host:$port to be available..."
+echo "Waiting for $host:$port."
 
 while ! nc -z "$host" "$port"; do
   sleep 1
 done
 
-echo "✅ $host:$port is available. Starting the app..."
+echo "$host:$port is available."
 exec "$@"
