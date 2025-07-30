@@ -14,6 +14,15 @@ public class DatabaseStorage {
 
     String DB_URL = "jdbc:mysql://" + DB_HOST + ":" + DB_PORT + "/" + DB_NAME +
             "?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC";
+//    String DB_HOST = "localhost";
+//    String DB_PORT = "3306";
+//    String DB_NAME = "library";
+//    String DB_USER = "root";
+//    String DB_PASSWORD = "30072004Nn!";
+//
+//    String DB_URL = "jdbc:mysql://" + DB_HOST + ":" + DB_PORT + "/" + DB_NAME +
+//            "?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC";
+
 
     private static final String CREATE_BOOKS = """
         CREATE TABLE IF NOT EXISTS books (
@@ -56,7 +65,6 @@ public class DatabaseStorage {
     public void saveData(LibrarySystem system){
 
         try (Connection conn = connect()) {
-            createTables(conn);
             clearTables(conn);
 
             saveBooks(conn, system);
@@ -80,6 +88,7 @@ public class DatabaseStorage {
 //        System.out.println(Class.forName("com.mysql.cj.jdbc.Driver"));
 
         try (Connection conn = connect()) {
+            createTables(conn);
             loadBooks(conn, system);
             loadUsers(conn, system);
             loadBorrowedAndHistory(conn, system);
@@ -92,10 +101,10 @@ public class DatabaseStorage {
     }
 
     private Connection connect() throws SQLException, ClassNotFoundException {
-        Class.forName("com.mysql.cj.jdbc.Driver");
 
-        System.out.println("Connecting to DB with URL: " + DB_URL);
-        System.out.println("Using user: " + DB_USER);
+        Class.forName("com.mysql.cj.jdbc.Driver");
+//        System.out.println("Connecting to DB with URL: " + DB_URL);
+//        System.out.println("Using user: " + DB_USER);
 
         return DriverManager.getConnection(DB_URL, DB_USER, DB_PASSWORD);
     }

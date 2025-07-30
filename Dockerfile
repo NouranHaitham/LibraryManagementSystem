@@ -6,7 +6,7 @@ WORKDIR /app
 RUN apt-get update && apt-get install -y netcat-openbsd && rm -rf /var/lib/apt/lists/*
 
 # Copy app jar and wait script
-COPY out/artifacts/Library_Management_Console_App_jar/library-app.jar app.jar
+COPY out/artifacts/Library_app_jar/Library-app.jar app.jar
 COPY wait-for-it.sh wait-for-it.sh
 
 RUN chmod +x wait-for-it.sh
